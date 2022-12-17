@@ -15,10 +15,11 @@ SNR = 10*log10(frob(A*s).^2 / frob(n).^2);
 
 [F, delta] = aci(x);
 z = pinv(F) * x;
-[sir, ~, D] = sir(z', s');
+[sir_ica, ~, D] = sir(z', s');
 
 %% PCA
 [P, V] = pca(x');
-
+z_pca = pinv(P) * x;
+[sir_pca, ~, D] = sir(z_pca', s');
 
 

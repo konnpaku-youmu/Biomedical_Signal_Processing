@@ -1,10 +1,12 @@
 % Required software for this exercise:
 % - EEGLAB: http://sccn.ucsd.edu/eeglab/downloadtoolbox.html
 % - Wavelet Toolbox
+close all;
+clc;
+clear;
 
 % Load and inspect EEG measurements.
 load demosignal3_963
-%eegplot()
 
 % Epileptic activity occurs around 52s.
 % Normalise the measurements and wavelet transform them to a tensor.

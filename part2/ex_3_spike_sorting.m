@@ -4,6 +4,7 @@
 % EXPLICITLY SPECIFIED
 
 close all;
+clc;
 
 % load the training data
 load('trainingData.mat');
@@ -20,19 +21,20 @@ template = calcTemplate(trainingData, trainingLabels, spike_window);
 % vectorize template for use in filter design
 vecTemplate = mat2stacked(template);
 
-% TODO: Visualize the calculated template using plotMultiChannel
-% visualize template
+% % visualize template
+% plotMultiChannel(template, 1, 'linewidth', 1);
+% title("Template waveform");
 
-% <add your code here>
 %% Template as a filter
 % TODO: complete applyMultiChannelFilter function
 %  make sure to transform the filter coefficients back to a matrix
 %  using stacked2mat.
-templateFilter = ;
+templateFilter = template;
 templateFilterOut = applyMultiChannelFilter(trainingData, templateFilter);
 
 % calculate output power
 templateFilterOut = templateFilterOut.^2;
+
 %% CHOOSE F1-OPTIMAL THRESHOLD FOR template filter
 % shift labels to match output
 outLabels = trainingLabels + floor(spike_window/2);
@@ -55,7 +57,7 @@ while 1
     labels(outLabels) = 1;
     cuttedLabels = cutMask(labels, spike_window);
     
-    if length(cuttedDetections) == 0
+    if isempty(cuttedDetections)
         break;
     end
     
@@ -73,16 +75,19 @@ F1max = max(2 * (SNR_senss .* SNR_precs) ./ (SNR_senss + SNR_precs));
 fprintf("Maximum F1-Score template filter: %f\n", F1max)
 
 %% PLOT P-R CURVE FOR template filter AND CHOOSE A THRESHOLD
-
 % TODO: plot a P-R curve using SNR_senss and SNR_precs
 
-% <your code here>;
+hold on;
+plot(SNR_precs, 'Marker', 'x', 'LineWidth', 1.2);
+plot(SNR_senss, 'Marker', 'o', 'LineWidth', 1.2);
+yyaxis right;
+plot(SNR_thrs, 'Marker','*', 'LineStyle', 'none');
+
 
 % TODO: based on the plotted P-R curve choose a threshold
-max_threshold =  % <your value here>;
+max_threshold =  SNR_thrs(5);
 
 %% VALIDATE template filter ON TESTING DATA
-
 % load the testing data
 load('testingData.mat');
 
@@ -114,6 +119,7 @@ title('Template filter output on testing data')
 xlabel('Discrete time [samples]')
 ylabel('Output power [arb. unit]')
 legend('show')
+
 %% DESIGN Matched-filter
 
 % find noise segments
@@ -121,10 +127,10 @@ noiseSegments = findNoiseSegments(trainingData, spike_window);
 
 % calculate noise covariance matrix
 
-% TODO: Write a function which computes the noise covariance matrix using only the
+% TODO: Write a function whichd computes the noise covariance matrix using only the
 % data in noise segments.
 
-tempNoiseCovariance =  % Let the estimated noise covariance be this variable.
+tempNoiseCovariance = noiseCovEsti(noiseSegments, trainingData);% Let the estimated noise covariance be this variable.
 
 % regularize the noise covariance matrix
 noiseCov = regularizeCov(tempNoiseCovariance,1);
@@ -133,7 +139,7 @@ noiseCov = regularizeCov(tempNoiseCovariance,1);
 % template, make sure to transform the filter coefficients back to a matrix
 % Store the matched filter in maxSNR
 
-maxSNR = % <add your code here>;
+maxSNR = noiseCov \ template; % slides 14
 
 % TODO: complete applyMultiChannelFilter function
 maxSNROut = applyMultiChannelFilter(trainingData, maxSNR);
@@ -185,10 +191,14 @@ fprintf("Maximum F1-Score matched filter: %f\n", F1max)
 
 % TODO: plot a P-R curve using SNR_senss and SNR_precs
 
-% <your code here>;
+hold on;
+plot(SNR_precs, 'Marker', 'x', 'LineWidth', 1.2);
+plot(SNR_senss, 'Marker', 'o', 'LineWidth', 1.2);
+yyaxis right;
+plot(SNR_thrs, 'Marker','*', 'LineStyle', 'none');
 
 % TODO: based on the plotted P-R curve choose a threshold
-max_threshold =  % <your value here>;
+max_threshold = SNR_thrs(6);
 
 %% VALIDATE Matched filter ON TESTING DATA
 
@@ -224,113 +234,113 @@ xlabel('Discrete time [samples]')
 ylabel('Output power [arb. unit]')
 legend('show')
 
-%% DESIGN MAX-SPIR FILTER
-
-% find interference segments
-intSegments = findInterferenceSegments(trainingData, maxSNR, outLabels, spike_window);
-
-% visualize interference segments
-figure; hold on;
-plot(maxSNROut, 'DisplayName', 'Matched filter');
-plot(intSegments, maxSNROut(intSegments), 'r*', 'DisplayName', 'Detected interference segments');
-plot(outLabels, maxSNROut(outLabels), 'g*', 'DisplayName', 'Training labels');
-title('Matched filter output on training data')
-xlabel('Discrete time [samples]')
-ylabel('Output power [arb. unit]')
-legend('show')
-
-% calculate interference covariance matrix and store it in tempIntCov
-% TODO: Re-use the function used to calculate noise covariance here.
-tempIntCov = ;
-
-% regularize the interference covariance matrix
-intCov = regularizeCov(tempIntCov,0.01); 
-
-% TODO: calculate the max-SPIR filter using intCov and the vectorized
-% template, make sure to transform the filter coefficients back to a matrix
-% using stacked2mat.
-
-maxSPIR = % <add your code here>;
-
-% calculate filter output
-maxSPIROut = applyMultiChannelFilter(trainingData, maxSPIR);
-maxSPIROut = maxSPIROut.^2;
-
-%% CHOOSE F1-OPTIMAL THRESHOLD FOR MAX-SPIR
-
-% try different thresholds on the filter output
-outStd = std(maxSPIROut);
-C = 10;
-max_perf = 0;
-SPIR_senss = [];
-SPIR_precs = [];
-SPIR_thrs = [];
-while 1
-    % threshold segments
-    thr = C*outStd;
-    detections = maxSPIROut > thr;
-    cuttedDetections = cutMask(detections, spike_window);
-    
-    % output training segments
-    labels = zeros(size(detections));
-    labels(outLabels) = 1;
-    cuttedLabels = cutMask(labels, spike_window);
-    
-    if length(cuttedDetections) == 0
-        break;
-    end
-    
-    % validate the detections
-    [sens, prec] = validateDetections(cuttedDetections, cuttedLabels);
-    
-    SPIR_thrs = [SPIR_thrs; thr];
-    SPIR_senss = [SPIR_senss; sens];
-    SPIR_precs = [SPIR_precs; prec];
-
-    C = C + 3;
-end
-
-F1max = max(2 * (SNR_senss .* SNR_precs) ./ (SNR_senss + SNR_precs));
-fprintf("Maximum F1-Score MAX-SPIR filter: %f\n", F1max)
-
-%% PLOT P-R CURVE FOR MAX-SPIR AND CHOOSE A THRESHOLD
-
-% TODO: plot a P-R curve using SPIR_senss and SPIR_precs
-
-% <your code here>;
-
-% TODO: based on the plotted P-R curve choose a threshold
-max_threshold_SPIR = % <your value here>;
-
-%% VALIDATE MAX-SPIR FILTER ON TESTING DATA
-
-testingMaxSPIROut = applyMultiChannelFilter(testingData, maxSPIR);
-testingMaxSPIROut = testingMaxSPIROut.^2;
-
-testingOutLabels = testingLabels + floor(spike_window/2);
-
-detections = testingMaxSPIROut > max_threshold_SPIR;
-cuttedDetections = cutMask(detections, spike_window);
-
-labels = zeros(size(detections));
-labels(testingOutLabels) = 1;
-cuttedLabels = cutMask(labels, spike_window);
-
-% validate the detections
-[sens_SPIR, prec_SPIR] = validateDetections(cuttedDetections, cuttedLabels);
-fprintf('max-SPIR: for the maximum F1-score threshold: recall: %.3f, precision: %.3f\n', sens_SPIR, prec_SPIR);
-
-%% COMPARE BOTH FILTER OUTPUTS FROM TESTING DATA
-
-% normalize filter outputs for plotting purposes
-[normSNR, normSPIR] = normalizeOutputs(testingMaxSNROut, testingMaxSPIROut, testingOutLabels, spike_window);
-
-% plot normalized filter outputs on testing data
-figure; hold on;
-plot(normSPIR, 'DisplayName', 'normalized max-SPIR');
-plot(normSNR, 'DisplayName', 'normalized Matched filter');
-plot(testingOutLabels, normSPIR(testingOutLabels), 'g*', 'DisplayName', 'Testing labels');
-title('Filter outputs on testing data')
-xlabel('Discrete time [samples]');
-ylabel('Output power [arb. unit]')
-legend('show');
+% %% DESIGN MAX-SPIR FILTER
+% 
+% % find interference segments
+% intSegments = findInterferenceSegments(trainingData, maxSNR, outLabels, spike_window);
+% 
+% % visualize interference segments
+% figure; hold on;
+% plot(maxSNROut, 'DisplayName', 'Matched filter');
+% plot(intSegments, maxSNROut(intSegments), 'r*', 'DisplayName', 'Detected interference segments');
+% plot(outLabels, maxSNROut(outLabels), 'g*', 'DisplayName', 'Training labels');
+% title('Matched filter output on training data')
+% xlabel('Discrete time [samples]')
+% ylabel('Output power [arb. unit]')
+% legend('show')
+% 
+% % calculate interference covariance matrix and store it in tempIntCov
+% % TODO: Re-use the function used to calculate noise covariance here.
+% tempIntCov = ;
+% 
+% % regularize the interference covariance matrix
+% intCov = regularizeCov(tempIntCov,0.01); 
+% 
+% % TODO: calculate the max-SPIR filter using intCov and the vectorized
+% % template, make sure to transform the filter coefficients back to a matrix
+% % using stacked2mat.
+% 
+% maxSPIR = % <add your code here>;
+% 
+% % calculate filter output
+% maxSPIROut = applyMultiChannelFilter(trainingData, maxSPIR);
+% maxSPIROut = maxSPIROut.^2;
+% 
+% %% CHOOSE F1-OPTIMAL THRESHOLD FOR MAX-SPIR
+% 
+% % try different thresholds on the filter output
+% outStd = std(maxSPIROut);
+% C = 10;
+% max_perf = 0;
+% SPIR_senss = [];
+% SPIR_precs = [];
+% SPIR_thrs = [];
+% while 1
+%     % threshold segments
+%     thr = C*outStd;
+%     detections = maxSPIROut > thr;
+%     cuttedDetections = cutMask(detections, spike_window);
+%     
+%     % output training segments
+%     labels = zeros(size(detections));
+%     labels(outLabels) = 1;
+%     cuttedLabels = cutMask(labels, spike_window);
+%     
+%     if length(cuttedDetections) == 0
+%         break;
+%     end
+%     
+%     % validate the detections
+%     [sens, prec] = validateDetections(cuttedDetections, cuttedLabels);
+%     
+%     SPIR_thrs = [SPIR_thrs; thr];
+%     SPIR_senss = [SPIR_senss; sens];
+%     SPIR_precs = [SPIR_precs; prec];
+% 
+%     C = C + 3;
+% end
+% 
+% F1max = max(2 * (SNR_senss .* SNR_precs) ./ (SNR_senss + SNR_precs));
+% fprintf("Maximum F1-Score MAX-SPIR filter: %f\n", F1max)
+% 
+% %% PLOT P-R CURVE FOR MAX-SPIR AND CHOOSE A THRESHOLD
+% 
+% % TODO: plot a P-R curve using SPIR_senss and SPIR_precs
+% 
+% % <your code here>;
+% 
+% % TODO: based on the plotted P-R curve choose a threshold
+% max_threshold_SPIR = % <your value here>;
+% 
+% %% VALIDATE MAX-SPIR FILTER ON TESTING DATA
+% 
+% testingMaxSPIROut = applyMultiChannelFilter(testingData, maxSPIR);
+% testingMaxSPIROut = testingMaxSPIROut.^2;
+% 
+% testingOutLabels = testingLabels + floor(spike_window/2);
+% 
+% detections = testingMaxSPIROut > max_threshold_SPIR;
+% cuttedDetections = cutMask(detections, spike_window);
+% 
+% labels = zeros(size(detections));
+% labels(testingOutLabels) = 1;
+% cuttedLabels = cutMask(labels, spike_window);
+% 
+% % validate the detections
+% [sens_SPIR, prec_SPIR] = validateDetections(cuttedDetections, cuttedLabels);
+% fprintf('max-SPIR: for the maximum F1-score threshold: recall: %.3f, precision: %.3f\n', sens_SPIR, prec_SPIR);
+% 
+% %% COMPARE BOTH FILTER OUTPUTS FROM TESTING DATA
+% 
+% % normalize filter outputs for plotting purposes
+% [normSNR, normSPIR] = normalizeOutputs(testingMaxSNROut, testingMaxSPIROut, testingOutLabels, spike_window);
+% 
+% % plot normalized filter outputs on testing data
+% figure; hold on;
+% plot(normSPIR, 'DisplayName', 'normalized max-SPIR');
+% plot(normSNR, 'DisplayName', 'normalized Matched filter');
+% plot(testingOutLabels, normSPIR(testingOutLabels), 'g*', 'DisplayName', 'Testing labels');
+% title('Filter outputs on testing data')
+% xlabel('Discrete time [samples]');
+% ylabel('Output power [arb. unit]')
+% legend('show');

@@ -20,9 +20,9 @@ for idx=L:length(output)
     
     % TODO: Calculate the filter output(idx). At time idx consider only idx
     % and its past samples (i.e., we implement a causal filter).
+    out = data(idx - L+1:idx, :) .* filter;
     
-   
-   output(idx) = % <add your code here>
+    output(idx) = sum(out, "all");% <add your code here>
 end
 
 end

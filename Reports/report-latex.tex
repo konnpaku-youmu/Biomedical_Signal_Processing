@@ -1,0 +1,125 @@
+\documentclass[pagesize,english,DIV=calc,footinclude=false
+]{scrartcl}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[fleqn]{amsmath}
+\usepackage[nohyperlinks]{acronym}
+\usepackage{babel,lmodern,graphicx,mathptmx,xspace,wasysym,microtype,booktabs,tabularx,relsize,textcomp,longtable,lipsum,ifluatex,epstopdf}
+\usepackage[olditem,oldenum]{paralist}
+\usepackage[babel=true]{csquotes}
+\usepackage[thinqspace]{SIunits}
+\usepackage[normal,font=small]{caption}
+\usepackage{subcaption}
+\usepackage[multiple,flushmargin]{footmisc}
+\usepackage{todonotes}
+\usepackage{geometry}
+\geometry{margin=1.2in}
+
+\usepackage{url}
+\urlstyle{same}
+
+\usepackage{hyperref}
+\hypersetup{
+  pdftitle=Title,
+  pdfkeywords={},
+  pdfauthor=Author 1,
+  plainpages=false,
+  linktoc=all,
+  colorlinks=true,
+  anchorcolor=black,
+  menucolor=black,
+  linkcolor=black,
+  citecolor=black,
+  urlcolor=black,
+  filecolor=black,
+}
+
+\graphicspath{{figures/}}
+\DeclareGraphicsExtensions{.pdf,.jpeg,.png,.eps}         % Fix sort order in case the same file exists with multiple extensions
+\frenchspacing
+
+\input{templates/definitions.tex}
+
+\usepackage[normalem]{ulem}
+\pdfstringdefDisableCommands{\renewcommand{\sout}{}}
+
+
+\setcounter{secnumdepth}{1}
+
+\title{Selected Topics in Biomedical Signal Processing}
+\author{Author 1 \and Author 2}
+\date{Date}
+
+\begin{document}
+
+\maketitle
+
+\section{Data-driven filter design for biomedical sensor arrays}
+
+\subsection{Unsupervised artifact removal using CCA}
+
+The raw EEG data is shown in Figure.\ref{fig:raw_eeg}. In Figure.\ref{fig:arti_zoom}, the eye-blink artifacts can be seen at $t=0s, 2.5s, 4.8s, 7.2s$. 
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{eeg_raw.eps}
+  \caption{Raw EEG data}
+  \label{fig:raw_eeg}
+\end{figure}
+
+The magnitude of the eye-blink artifacts differs from channel to channel. This is cause by the different locations of the electrodes.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{arti.eps}
+  \caption{Eye-blink artifacts}
+  \label{fig:arti_zoom}
+\end{figure}
+
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[b]{0.48\linewidth}
+    \includegraphics[width=\linewidth]{eeg_arti.eps}
+    \caption{Raw EEG data}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.48\linewidth}
+    \includegraphics[width=\linewidth]{eeg_arti_rmv.eps}
+    \caption{Muscle artifact removed}
+  \end{subfigure}
+  \caption{Artifact removel with CCA}
+  \label{fig:arti_rmv}
+\end{figure}
+
+The reconstruction can be done by setting the sources with lower autocorrelation to 0.
+
+\subsection{Supervised artifact removal using MWF}
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[b]{0.48\linewidth}
+    \includegraphics[width=\linewidth]{blink_arti_rmv.eps}
+    \caption{Eye-blink artifact removal}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.48\linewidth}
+    \includegraphics[width=\linewidth]{blink_arti_ch3.eps}
+    \caption{Artifacts removal on Ch3, zoomed in}
+  \end{subfigure}
+  \caption{Eye-blink artifacts removal with MWF}
+  \label{fig:blink}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.7\linewidth]{mwf_delay_ser.eps}
+  \caption{SER under different time delay}
+  \label{fig:ser_delay}
+\end{figure}
+
+
+
+\section{Blind Signal Separation}
+
+
+\end{document}
