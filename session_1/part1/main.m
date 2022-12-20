@@ -5,8 +5,8 @@ clear;
 load eegdata_artifacts.mat
 
 %% eye-blink artifact removal
-% eyeblink_mask = mwf_getmask(eegdata, fs);
-load eyeblink_arti.mat
+eyeblink_mask = mwf_getmask(eegdata, fs);
+% load eyeblink_arti.mat
 
 % [n, d, W, SER, ARR, p] = mwf_process(eegdata, eyeblink_mask, 2);
 % 
@@ -21,8 +21,8 @@ load eyeblink_arti.mat
 % legend;
 
 %% Muscle artifact removal
-% muscle_mask = mwf_getmask(eegdata, fs);
-load muscle_arti.mat
+muscle_mask = mwf_getmask(eegdata, fs);
+% load muscle_arti.mat
 
 % [n, d, W, SER, ARR, p] = mwf_process(eegdata, muscle_mask, 2);
 % 

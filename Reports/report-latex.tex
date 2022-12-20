@@ -110,6 +110,7 @@ The reconstruction can be done by setting the sources with lower autocorrelation
   \label{fig:blink}
 \end{figure}
 
+By introducing the delay, the performance.
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.7\linewidth]{mwf_delay_ser.eps}
@@ -117,9 +118,147 @@ The reconstruction can be done by setting the sources with lower autocorrelation
   \label{fig:ser_delay}
 \end{figure}
 
+\subsection{Filter design in threshold-based spike sorting}
 
+Figure.\ref{fig:spike_template} shows 
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.7\linewidth]{template_spike.eps}
+  \caption{Spatio-temporal template of the target neuron}
+  \label{fig:spike_template}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[b]{0.48\linewidth}
+    \includegraphics[width=\linewidth]{PR_curve.eps}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.48\linewidth}
+    \includegraphics[width=\linewidth]{F1_score.eps}
+  \end{subfigure}
+  \caption{P-R curve and F1 score of the matched filter}
+  \label{fig:pr_curve}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{template_testing.eps}
+  \caption{Template filter output}
+  \label{fig:template_filt}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{matched_testing.eps}
+  \caption{Matched filter output}
+  \label{fig:matched_filt}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{SPIR_testing.eps}
+  \caption{Max-SPIR filter output v.s. matched filter output}
+  \label{fig:SPIR_filt}
+\end{figure}
+
+
+
+\subsection{Stimulation artifact removal}
+
+The neural spikes can be found in Figure.\ref{fig:stimu_sample} at $t=2.461s$ and $t=2.468s$
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{stimu_sample_seg.eps}
+  \caption{A sample segment of raw EEG signal around neural spike}
+  \label{fig:stimu_sample}
+\end{figure}
 
 \section{Blind Signal Separation}
+
+\subsection{Denoising using low multilinear rank approximation}
+
+As shown in Figure.\ref{fig:mlrank_esti}, 
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{mlrank_esti.png}
+  \caption{Multilinear low rank approximation}
+  \label{fig:mlrank_esti}
+\end{figure}
+
+\subsection{Source separation with ICA and PCA}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.7\linewidth]{ica_pca.eps}
+  \caption{Source separation with ICA and PCA}
+  \label{fig:ica_pca}
+\end{figure}
+
+
+
+\subsection{Synthetic CP}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{ABC_comp.eps}
+  \caption{Components in matrix $A, B, C$}
+  \label{fig:ABC_comp}
+\end{figure}
+
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{PCA_comp.eps}
+  \caption{Estimation of components in tensor $T_3$ using PCA}
+  \label{fig:PCA_comp}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.8\linewidth]{tensor_mlsvd.eps}
+  \caption{Multiliear singular values of $T_3$ with additive noise}
+  \label{fig:tensor_mlsvd}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{CPD_tensor_noisy.eps}
+  \caption{Convergence rate under different rank}
+  \label{fig:cpd_tensor}
+\end{figure}
+
+
+\subsection{Harmonic retrieval}
+
+To estimate the number of poles of the signal, we can inspect the multilinear SVD of the Hankel matrix constructed by the signal. From Figure.\ref{fig:svd_hankel} we can assume that the system has 6 poles because there are 6 dominant singular values.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{svd_hankel.eps}
+  \caption{Singular values of $H_x$ and the estimation of poles}
+  \label{fig:svd_hankel}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[b]{0.32\linewidth}
+    \includegraphics[width=\linewidth]{HR_pred1.eps}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.32\linewidth}
+    \includegraphics[width=\linewidth]{HR_pred2.eps}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.32\linewidth}
+    \includegraphics[width=\linewidth]{HR_pred3.eps}
+  \end{subfigure}
+  \caption{Predicting the signal using poles \& tensor completion method}
+  \label{fig:HR_pred}
+\end{figure}
+
+
+\section{Nonlinear Signal Processing}
 
 
 \end{document}

@@ -46,14 +46,17 @@ sangle = lmlraerr(Uopt,Utrunc) % angles between subspace estimates
 U1toptrunc = Utrunc{1}(1:166,1:3); U1bottomtrunc = Utrunc{1}(2:167,1:3);
 disp('ztrunc:'), disp(eig(pinv(U1toptrunc)*U1bottomtrunc))   % pole estimates truncation ~ z
 
-U1topopt = Uopt{1}(1:166,1:3); U1bottomopt = Uopt{1}(2:167,1:3);
+U1topopt = Uopt{1}(1:166,1:3); 
+U1bottomopt = Uopt{1}(2:167,1:3);
 zopt = eig(pinv(U1topopt)*U1bottomopt);
 disp('zopt:'), disp(zopt)       % pole estimates best low ML rank approx ~ z
 
 %% interpolation
 
-V = []; for i=1:499,
-    V = [V; (zopt.^(i-1)).']; end
+V = []; 
+for i=1:499
+    V = [V; (zopt.^(i-1)).']; 
+end
 
 coeff = V\x.';
 xest = V*coeff;
