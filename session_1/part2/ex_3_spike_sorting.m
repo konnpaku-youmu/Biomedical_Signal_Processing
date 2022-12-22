@@ -4,6 +4,7 @@
 % EXPLICITLY SPECIFIED
 
 close all;
+clear;
 clc;
 
 % load the training data
@@ -22,7 +23,7 @@ template = calcTemplate(trainingData, trainingLabels, spike_window);
 vecTemplate = mat2stacked(template);
 
 % visualize template
-% plotMultiChannel(template, 1, 'linewidth', 1);
+% plotMultiChannel([], template, 1, 'linewidth', 1);
 % title("Template waveform");
 
 %% Template as a filter
@@ -74,21 +75,18 @@ end
 %% PLOT P-R CURVE FOR template filter AND CHOOSE A THRESHOLD
 % TODO: plot a P-R curve using SNR_senss and SNR_precs
 
-hold on;
-plot(SNR_senss, SNR_precs, 'Marker', 'x', 'LineWidth', 1);
-xlabel("Recall");
-ylabel("Precision");
-title("P-R Curve");
-
 % TODO: based on the plotted P-R curve choose a threshold
 F1 = 2 * (SNR_senss .* SNR_precs) ./ (SNR_senss + SNR_precs);
 [F1max, pos] = max(2 * (SNR_senss .* SNR_precs) ./ (SNR_senss + SNR_precs));
 
 figure;
 hold on;
-plot(F1, 'LineWidth', 1);
-plot(pos, F1max, LineStyle="none", Marker="*");
-title("F1 score");
+plot(SNR_senss, SNR_precs, 'Marker', 'x', 'LineWidth', 1, DisplayName="P-R");
+plot(SNR_senss(pos), SNR_precs(pos), LineStyle="none", Marker="*", MarkerSize=8, LineWidth=1, DisplayName="Max F1 score");
+xlabel("Recall");
+ylabel("Precision");
+title(sprintf("P-R Curve: Max F1-Score = %1.2f", F1max));
+legend;
 
 max_threshold =  SNR_thrs(pos);
 
@@ -118,10 +116,12 @@ cuttedLabels = cutMask(labels, spike_window);
 [sens_templateFilter, prec_templateFilter] = validateDetections(cuttedDetections, cuttedLabels);
 fprintf('template-filter: for your threshold: recall: %.3f, precision: %.3f\n\n', sens_templateFilter, prec_templateFilter);
 
-% visualize Matched filter output power
-figure; hold on;
+%% visualize Matched filter output power
+figure; 
 plot(testingtemplateFilterOut, 'DisplayName', 'Matched filter');
+hold on;
 plot(testingOutLabels, testingtemplateFilterOut(testingOutLabels), 'g*', 'DisplayName', 'Testing labels');
+yline(max_threshold, LineStyle="--", LineWidth=2, Color=[0.8 0.3 0.2], Alpha=1, DisplayName="Threshold");
 fig_title = sprintf('Template filter output on testing data: recall: %.3f, precision: %.3f', sens_templateFilter, prec_templateFilter);
 title(fig_title);
 xlabel('Discrete time [samples]')
@@ -147,7 +147,17 @@ noiseCov = regularizeCov(tempNoiseCovariance,1);
 % template, make sure to transform the filter coefficients back to a matrix
 % Store the matched filter in maxSNR
 
-maxSNR = (noiseCov \ template')'; % slides 14
+maxSNR = noiseCov \ vecTemplate; % slides 14
+maxSNR = stacked2mat(maxSNR, nbChannels);
+
+% maxSNR = (noiseCov \ template')';
+
+figure;
+subplot(121);
+imagesc(noiseCov);
+title("$R_{nn}$");
+subplot(122);
+mesh(noiseCov);
 
 % TODO: complete applyMultiChannelFilter function
 maxSNROut = applyMultiChannelFilter(trainingData, maxSNR);
@@ -196,22 +206,19 @@ end
 
 % TODO: plot a P-R curve using SNR_senss and SNR_precs
 
-figure;
-plot(SNR_senss, SNR_precs, 'Marker', 'x', 'LineWidth', 1);
-xlabel("Recall");
-ylabel("Precision");
-title("P-R Curve");
-
-% TODO: based on the plotted P-R curve choose a threshold
 F1 = 2 * (SNR_senss .* SNR_precs) ./ (SNR_senss + SNR_precs);
 [F1max, pos] = max(2 * (SNR_senss .* SNR_precs) ./ (SNR_senss + SNR_precs));
 
 figure;
 hold on;
-plot(F1, 'LineWidth', 1);
-plot(pos, F1max, LineStyle="none", Marker="*");
-title("F1 score");
+plot(SNR_senss, SNR_precs, 'Marker', 'x', 'LineWidth', 1, DisplayName="P-R");
+plot(SNR_senss(pos), SNR_precs(pos), LineStyle="none", Marker="*", MarkerSize=8, LineWidth=1, DisplayName="Max F1 score");
+xlabel("Recall");
+ylabel("Precision");
+legend;
+title(sprintf("P-R Curve: Max F1-Score = %1.2f", F1max));
 
+% TODO: based on the plotted P-R curve choose a threshold
 max_threshold =  SNR_thrs(pos);
 
 fprintf("Maximum F1-Score template filter: %f\n", F1max)
@@ -242,9 +249,11 @@ cuttedLabels = cutMask(labels, spike_window);
 fprintf('matched-filter: for your threshold: recall: %.3f, precision: %.3f\n\n', sens_SNR, prec_SNR);
 
 % visualize Matched filter output power
-figure; hold on;
+figure; 
 plot(testingMaxSNROut, 'DisplayName', 'Matched filter');
+hold on;
 plot(testingOutLabels, testingMaxSNROut(testingOutLabels), 'g*', 'DisplayName', 'Testing labels');
+yline(max_threshold, LineStyle="--", LineWidth=2, Color=[0.8 0.3 0.2], Alpha=1, DisplayName="Threshold");
 fig_title = sprintf('Matched filter output on testing data: recall: %.3f, precision: %.3f', sens_SNR, prec_SNR);
 title(fig_title);
 xlabel('Discrete time [samples]')
@@ -277,7 +286,17 @@ intCov = regularizeCov(tempIntCov,0.01);
 % template, make sure to transform the filter coefficients back to a matrix
 % using stacked2mat.
 
-maxSPIR = (intCov \ template')';
+maxSPIR = intCov \ vecTemplate;
+maxSPIR = stacked2mat(maxSPIR, nbChannels);
+
+% maxSPIR = (intCov \ template')';
+
+figure;
+subplot(121);
+imagesc(intCov);
+title("$R_{i \gg 0}$");
+subplot(122);
+mesh(intCov);
 
 % calculate filter output
 maxSPIROut = applyMultiChannelFilter(trainingData, maxSPIR);
@@ -326,16 +345,15 @@ fprintf("Maximum F1-Score MAX-SPIR filter: %f\n", F1max)
 % TODO: plot a P-R curve using SPIR_senss and SPIR_precs
 
 figure;
-plot(SPIR_senss, SPIR_precs, 'Marker', 'x', 'LineWidth', 1);
+plot(SPIR_senss, SPIR_precs, 'Marker', 'x', 'LineWidth', 1, DisplayName="P-R: SPIR");
+hold on;
+plot(SPIR_senss(pos), SPIR_precs(pos), LineStyle="none", Marker="*", MarkerSize=8, LineWidth=1, DisplayName="Max F1 score: SPIR");
+plot(SNR_senss, SNR_precs, 'Marker', 'x', 'LineWidth', 1, DisplayName="P-R: Matched");
+plot(SNR_senss(pos), SNR_precs(pos), LineStyle="none", Marker="*", MarkerSize=8, LineWidth=1, DisplayName="Max F1 score: Matched");
 xlabel("Recall");
 ylabel("Precision");
-title("P-R Curve");
-
-figure;
-hold on;
-plot(F1, 'LineWidth', 1);
-plot(pos, F1max, LineStyle="none", Marker="*");
-title("F1 score");
+legend;
+title(sprintf("P-R Curve: Max F1-Score = %1.2f", F1max));
 
 % TODO: based on the plotted P-R curve choose a threshold
 max_threshold_SPIR = SPIR_thrs(pos); % <your value here>;
@@ -361,12 +379,15 @@ fprintf('max-SPIR: for the maximum F1-score threshold: recall: %.3f, precision: 
 %% COMPARE BOTH FILTER OUTPUTS FROM TESTING DATA
 
 % normalize filter outputs for plotting purposes
-[normSNR, normSPIR] = normalizeOutputs(testingMaxSNROut, testingMaxSPIROut, testingOutLabels, spike_window);
+[normSNR, normSPIR, normSNRTh, normSPIRTh] = normalizeOutputs(testingMaxSNROut, max_threshold, testingMaxSPIROut, max_threshold_SPIR, testingOutLabels, spike_window);
 
 % plot normalized filter outputs on testing data
-figure; hold on;
+figure;
 plot(normSNR, 'DisplayName', 'normalized Matched filter');
+hold on;
 plot(normSPIR, 'DisplayName', 'normalized max-SPIR');
+yline(normSNRTh, LineStyle="--", LineWidth=2, Color=[0.2 0.3 0.8], Alpha=1, DisplayName="Threshold:SNR");
+yline(normSPIRTh, LineStyle="--", LineWidth=2, Color=[0.2 0.8 0.2], Alpha=1, DisplayName="Threshold:SPIR");
 plot(testingOutLabels, normSPIR(testingOutLabels), 'g*', 'DisplayName', 'Testing labels');
 title('Filter outputs on testing data')
 xlabel('Discrete time [samples]');

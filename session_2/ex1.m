@@ -29,7 +29,7 @@ for SNR = SNRs
     for k = 1:N
         s = rand(2, 800) * 2 - 1;
         [x, n] = noisy(A*s, SNR);
-        
+
         % ICA
         [F, delta] = aci(x);
         z = pinv(F) * x;
@@ -55,4 +55,15 @@ xlabel("SNR");
 title("Source separation quality: ICA v.s. PCA");
 legend
 
+%%
+s = rand(2, 800) * 2 - 1;
+[x, n] = noisy(A*s, 0);
 
+scatter(x(1, :), x(2, :), 'x', LineWidth=1);
+title("$x(t), SNR = 0$");
+
+[x, n] = noisy(A*s, 20);
+
+figure;
+scatter(x(1, :), x(2, :), 'x', LineWidth=1);
+title("$x(t), SNR = 20$");

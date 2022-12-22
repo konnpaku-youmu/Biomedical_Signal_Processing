@@ -1,4 +1,4 @@
-function [normSNR, normSPIR] = normalizeOutputs(SNROut, SPIROut, outLabels, L)
+function [normSNR, normSPIR, normSNRTh, normSPIRTh] = normalizeOutputs(SNROut, SNRthresh, SPIROut, SPIRthresh, outLabels, L)
 %NORMALIZEOUTPUTS Normalize mean maximum label output response.
 
 % normalize SNR
@@ -10,6 +10,7 @@ end
 
 divSNR = mean(local_peaks);
 normSNR = SNROut / divSNR;
+normSNRTh = SNRthresh / divSNR;
 
 % normalize SPIR
 local_peaks = zeros(length(outLabels),1);
@@ -20,6 +21,7 @@ end
 
 divSPIR = mean(local_peaks);
 normSPIR = SPIROut / divSPIR;
+normSPIRTh = SPIRthresh / divSPIR;
 
 end
 

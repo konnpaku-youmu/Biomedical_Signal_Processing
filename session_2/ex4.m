@@ -36,12 +36,12 @@ figure;
 
 [U, S, V] = mlsvd(H_x);
 
-subplot(121);
+figure
 semilogy(V{1}, 'LineStyle', 'none', 'Marker','x', DisplayName="$\sigma^{(1)}$", LineWidth=1);
-title("Singular values of $H_x$");
+title("Singular values of $\mathcal{H}_x$");
 legend
 
-subplot(122);
+figure
 hold on;
 plot(z_cpd, LineStyle="none", Marker="x", LineWidth=1);
 plot(z_svd, LineStyle="none", Marker="diamond", LineWidth=1);

@@ -1,4 +1,4 @@
-function [] = plotMultiChannel( data, spacing, varargin )
+function [] = plotMultiChannel(t, data, spacing, varargin )
 %PLOTMULTICHANNEL Plot multi-channel data in a single figure with given
 %spacing between individual channels.
 %
@@ -21,10 +21,18 @@ spacingData = spacingData * stdData * spacing;
 % apply spacing
 spacedData = bsxfun(@plus, data, spacingData);
 
-discreteTime = (1:size(data, 1))';
+if isempty(t)
+    t = (1:size(data, 1))';
+end
 
-plot(discreteTime, spacedData, varargin{:});
-xlabel('discrete time [samples]');
+plot(t, spacedData, varargin{:});
+
+if isempty(t)
+    xlabel('discrete time [samples]');
+else
+    xlabel('Time [s]');
+end
+
 ylabel('amplitude [arb. unit]')
 
 end
