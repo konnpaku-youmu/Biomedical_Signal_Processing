@@ -62,34 +62,49 @@ semilogy(sv{3}, DisplayName="$\sigma^{(3)}$", LineStyle="none", Marker="+", Line
 title("Multilinear singular values of tensor $T_{noisy}$");
 legend;
 
-% rank = 4
+%%
+rank = 4;
 figure;
 
-for rank=1:4
-    options = struct;
-    options.Algorithm = @cpd_nls;
-    options.ExploitStructure = true;
-    [U_NLS,output_NLS] = cpd(T_noisy,rank,options);
+options = struct;
+options.Algorithm = @cpd_nls;
+options.ExploitStructure = true;
+[U_NLS,output_NLS] = cpd(T_noisy,rank,options);
 
-    options.Algorithm = @cpd_als;
-    options.ExploitStructure = true;
-    [U_ALS,output_ALS] = cpd(T_noisy,rank,options);
-    
-    subplot(2, 2, rank);
-    hold on;
-    plot(output_NLS.Algorithm.fval);
-    plot(output_ALS.Algorithm.fval);
-    hold off;
-    
-    ylabel('Loss');
-    xlabel('iter');
-    plt_title = sprintf('rank = %d',rank);
-    title(plt_title);
-    legend('CPD: NLS','CPD: ALS');
-    set(gca, 'yscale', 'log');
+options.Algorithm = @cpd_als;
+options.ExploitStructure = true;
+[U_ALS,output_ALS] = cpd(T_noisy,rank,options);
 
-end
+subplot(2, 2, rank);
+hold on;
+plot(output_NLS.Algorithm.fval);
+plot(output_ALS.Algorithm.fval);
+hold off;
+
+ylabel('Loss');
+xlabel('iter');
+plt_title = sprintf('rank = %d',rank);
+title(plt_title);
+legend('CPD: NLS','CPD: ALS');
+set(gca, 'yscale', 'log');
 
 sgtitle("Convergence: NLS v.s. ALS");
+
+
+%%
+figure;
+subplot(131);
+plot(U_NLS{1});
+title('CPD rank-1 components: A');
+legend('Comp.1','Comp.2','Comp.3','Comp.4');
+subplot(132);
+plot(U_NLS{2});
+title('CPD rank-1 components: B');
+legend('Comp.1','Comp.2','Comp.3','Comp.4');
+subplot(133);
+plot(U_NLS{3});
+title('CPD rank-1 components: C');
+legend('Comp.1','Comp.2','Comp.3','Comp.4');
+
 
 

@@ -20,6 +20,8 @@ A = U{1}; B = U{2}; C = U{3};
 % Look at the error of the fit in function of the number of rank one terms.
 % This can be done by manually testing each R.
 
+
+
 % Topoplots.
 result = transform_back(A,s);
 
