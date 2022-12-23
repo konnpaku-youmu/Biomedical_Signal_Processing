@@ -13,18 +13,24 @@ load demosignal3_963
 [data_3D,m,s] = normalise_3D(demosignal3_963,51,53,make_scales(2,25));
 
 % Decompose the tensor in two rank one terms.
-R = 2;
-U = cpd(data_3D,R);
-A = U{1}; B = U{2}; C = U{3};
+Rs = 1:5;
+
+for R = Rs
+
+    U = cpd(data_3D,R);
+    A = U{1}; B = U{2}; C = U{3};
+    
+    %%
+    % Look at the error of the fit in function of the number of rank one terms.
+    % This can be done by manually testing each R.
+    
+    lmlra = A*kr(C, B)';
+    [lmlra_3D,m,s] = normalise_3D(lmlra,0,2,make_scales(2,25));
+    disp(sum((lmlra_3D - data_3D).^2, 'all'))
+
+end
 
 %%
-% Look at the error of the fit in function of the number of rank one terms.
-% This can be done by manually testing each R.
-
-lmlra = A*kr(C, B)';
-[lmlra_3D,m,s] = normalise_3D(lmlra,0,2,make_scales(2,25));
-disp(sum(lmlra_3D - data_3D, 'all'))
-
 % Topoplots.
 result = transform_back(A,s);
 
